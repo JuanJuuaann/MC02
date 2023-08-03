@@ -175,6 +175,30 @@ public class Money {
         return totalAmount;
     }
 
+    public void setTotalAmount(float totalAmount) {
+        // Convert total amount from dollars to cents
+        int totalAmountCents = (int) (totalAmount * 100);
+
+        // Calculate the counts of different denominations based on the total amount in cents
+        tenDollarBillCount = totalAmountCents / 1000;
+        totalAmountCents %= 1000;
+
+        fiveDollarBillCount = totalAmountCents / 500;
+        totalAmountCents %= 500;
+
+        oneDollarBillCount = totalAmountCents / 100;
+        totalAmountCents %= 100;
+
+        quarterCount = totalAmountCents / 25;
+        totalAmountCents %= 25;
+
+        dimeCount = totalAmountCents / 10;
+        totalAmountCents %= 10;
+
+        nickelCount = totalAmountCents / 5;
+        pennyCount = totalAmountCents % 5;
+    }
+
     /**
      * Resets the counts of all denominations to zero.
      */

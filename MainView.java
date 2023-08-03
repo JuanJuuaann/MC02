@@ -8,6 +8,8 @@ public class MainView {
     private VendingMachine vendingMachine; //VendingMachine variable
     private SpecialVendingMachine specialvendingMachine;
     private Money money;
+    private ArrayList<Integer> selectedSlots = new ArrayList<>();
+
 
     public MainView(Money money) {
         this.money = money;
@@ -254,12 +256,15 @@ public class MainView {
             showMessage("Invalid slot number. Please enter a valid number.");
         }
     }
-    private void sselectItem() {
+    public void sselectItem() {
         String input = JOptionPane.showInputDialog(mainFrame, "Enter the slot number:");
         try {
             int slotNumber = Integer.parseInt(input);
             String result = specialvendingMachine.selectItem(slotNumber - 1);
             showMessage(result);
+
+            selectedSlots.add(slotNumber);
+            printSpecialMessage(selectedSlots);
         } catch (NumberFormatException e) {
             showMessage("Invalid slot number. Please enter a valid number.");
         }
@@ -342,7 +347,6 @@ public class MainView {
         JButton modifyCaloriesButton = new JButton("Modify Calories");
         JButton collectPaymentsButton = new JButton("Collect/Replenish payments/money denominations");
         JButton displayItemsButton = new JButton("Display Items");
-        JButton printSummaryButton = new JButton("Print transaction summary");
         JButton prevPageButton = new JButton("Previous Page");
         JButton cancelButton = new JButton("Cancel");
 
@@ -351,7 +355,6 @@ public class MainView {
         maintenancePanel.add(modifyCaloriesButton);
         maintenancePanel.add(collectPaymentsButton);
         maintenancePanel.add(displayItemsButton);
-        maintenancePanel.add(printSummaryButton);
         maintenancePanel.add(prevPageButton);
         maintenancePanel.add(cancelButton);
 
@@ -361,7 +364,6 @@ public class MainView {
                     "Modify Calories",
                     "Collect/Replenish payments/money denominations",
                     "Display Items",
-                    "Print transaction summary",
                     "Previous Page",
                     "Cancel"
             };
@@ -388,12 +390,9 @@ public class MainView {
                     display();
                     break;
                 case 3:
-                    //     printTransactionSummary();
-                    break;
-                case 4:
                     testMaintenanceFeatures1();
                     return;
-                case 5:
+                case 4:
                     JOptionPane.showMessageDialog(mainFrame, "Returning to the main menu.");
                     return;
                 default:
@@ -436,39 +435,6 @@ public class MainView {
             }
         }
     }
-    private void saddRegularItems() {
-        JTextField slotNumberField = new JTextField(5);
-        JTextField itemNameField = new JTextField(15);
-        JTextField itemPriceField = new JTextField(10);
-        JTextField itemCaloriesField = new JTextField(5);
-
-        JPanel inputPanel = new JPanel();
-        inputPanel.setLayout(new GridLayout(4, 2));
-        inputPanel.add(new JLabel("Slot Number (1-8):"));
-        inputPanel.add(slotNumberField);
-        inputPanel.add(new JLabel("Item Name:"));
-        inputPanel.add(itemNameField);
-        inputPanel.add(new JLabel("Item Price:"));
-        inputPanel.add(itemPriceField);
-        inputPanel.add(new JLabel("Item Calories:"));
-        inputPanel.add(itemCaloriesField);
-
-        int result = JOptionPane.showConfirmDialog(mainFrame, inputPanel, "Add Regular Item", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
-            try {
-                int slotNumber = Integer.parseInt(slotNumberField.getText()) - 1;
-                String itemName = itemNameField.getText();
-                float itemPrice = Float.parseFloat(itemPriceField.getText());
-                int itemCalories = Integer.parseInt(itemCaloriesField.getText());
-
-                specialvendingMachine.addItem(slotNumber, itemName, itemPrice, itemCalories);
-                showMessage("Regular item added successfully.");
-            } catch (NumberFormatException e) {
-                showMessage("Invalid input. Please enter valid numbers.");
-            }
-        }
-    }
     private void restockItems() {
         JComboBox<String> slotComboBox = new JComboBox<>();
         for (int i = 0; i < vendingMachine.getSlots().size(); i++) {
@@ -491,7 +457,7 @@ public class MainView {
                 int slotNumber = slotComboBox.getSelectedIndex();
                 int quantityToRestock = Integer.parseInt(quantityField.getText());
 
-                ItemSlot selectedSlot = vendingMachine.getSlots().get(slotNumber);
+                ItemSlot selectedSlot = specialvendingMachine.getSlots().get(slotNumber);
                 int totalQuantity = selectedSlot.getQuantity() + quantityToRestock;
 
                 if (totalQuantity > 10) {
@@ -546,32 +512,6 @@ public class MainView {
     private void removeItems() {
         JComboBox<String> slotComboBox = new JComboBox<>();
         for (int i = 0; i < vendingMachine.getSlots().size(); i++) {
-            slotComboBox.addItem("Slot " + (i + 1));
-        }
-
-        JPanel inputPanel = new JPanel();
-        inputPanel.add(new JLabel("Select Slot:"));
-        inputPanel.add(slotComboBox);
-
-        int result = JOptionPane.showConfirmDialog(mainFrame, inputPanel, "Remove Items", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
-            int slotNumber = slotComboBox.getSelectedIndex();
-            ItemSlot selectedSlot = vendingMachine.getSlots().get(slotNumber);
-            Item item = selectedSlot.getItem();
-
-            if (item == null) {
-                showMessage("Slot " + (slotNumber + 1) + " is already empty.");
-            } else {
-                selectedSlot.setItem(null);
-                selectedSlot.setQuantity(0);
-                showMessage("Item removed from slot " + (slotNumber + 1) + " successfully.");
-            }
-        }
-    }
-    private void sremoveItems() {
-        JComboBox<String> slotComboBox = new JComboBox<>();
-        for (int i = 0; i < specialvendingMachine.getSlots().size(); i++) {
             slotComboBox.addItem("Slot " + (i + 1));
         }
 
@@ -653,7 +593,7 @@ public class MainView {
                 int slotNumber = slotComboBox.getSelectedIndex();
                 float newPrice = Float.parseFloat(newPriceField.getText());
 
-                ItemSlot selectedSlot = specialvendingMachine.getSlots().get(slotNumber);
+                ItemSlot selectedSlot = vendingMachine.getSlots().get(slotNumber);
                 Item item = selectedSlot.getItem();
 
                 if (item == null) {
@@ -704,9 +644,9 @@ public class MainView {
         }
     }
     private void smodifyCalories() {
-        JComboBox<String> sslotComboBox = new JComboBox<>();
+        JComboBox<String> slotComboBox = new JComboBox<>();
         for (int i = 0; i < specialvendingMachine.getSlots().size(); i++) {
-            sslotComboBox.addItem("Slot " + (i + 1));
+            slotComboBox.addItem("Slot " + (i + 1));
         }
 
         JTextField newCaloriesField = new JTextField(5);
@@ -714,7 +654,7 @@ public class MainView {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new GridLayout(2, 2));
         inputPanel.add(new JLabel("Select Slot:"));
-        inputPanel.add(sslotComboBox);
+        inputPanel.add(slotComboBox);
         inputPanel.add(new JLabel("Enter New Calories:"));
         inputPanel.add(newCaloriesField);
 
@@ -722,7 +662,7 @@ public class MainView {
 
         if (result == JOptionPane.OK_OPTION) {
             try {
-                int slotNumber = sslotComboBox.getSelectedIndex();
+                int slotNumber = slotComboBox.getSelectedIndex();
                 int newCalories = Integer.parseInt(newCaloriesField.getText());
 
                 ItemSlot selectedSlot = specialvendingMachine.getSlots().get(slotNumber);
@@ -873,8 +813,7 @@ public class MainView {
         JOptionPane.showMessageDialog(mainFrame, itemList.toString());
     }
     private ArrayList<ItemSlot> createItemSlots() {
-        // Implement the logic to create item slots here
-        // You can add GUI elements to create item slots or provide a default set of slots.
+
         ArrayList<ItemSlot> slots = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             slots.add(new ItemSlot(null, 0));
@@ -882,8 +821,7 @@ public class MainView {
         return slots;
     }
     private ArrayList<ItemSlot> createSpecialItemSlots() {
-            // Implement the logic to create item slots here
-            // You can add GUI elements to create item slots or provide a default set of slots.
+
         ArrayList<ItemSlot> slots = new ArrayList<>();
         Item riceitem = new Item("Rice", 1, 150);
         slots.add(new ItemSlot(riceitem, 10));
@@ -902,10 +840,6 @@ public class MainView {
         Item drinkitem = new Item("Drink", 1, 50);
         slots.add(new ItemSlot(drinkitem, 10));
 
-            //ArrayList<ItemSlot> slots = new ArrayList<>();
-            //for (int i = 0; i < 8; i++) {
-               // slots.add(new ItemSlot(null, 0));
-            //}
             return slots;
         }
 
@@ -914,18 +848,14 @@ public class MainView {
         JPanel maintenancePanel = new JPanel();
         maintenancePanel.setLayout(new BoxLayout(maintenancePanel, BoxLayout.Y_AXIS));
 
-        JButton addRegularItemsButton = new JButton("Add regular items");
         JButton restockItemsButton = new JButton("Restock items");
-        JButton removeItemsButton = new JButton("Remove items");
         JButton modifyItemPricesButton = new JButton("Modify item prices");
         JButton nextPageButton = new JButton("Modify Calories");
         JButton cancelButton = new JButton("Cancel");
 
         // Add action listeners for each button as needed
 
-        maintenancePanel.add(addRegularItemsButton);
         maintenancePanel.add(restockItemsButton);
-        maintenancePanel.add(removeItemsButton);
         maintenancePanel.add(modifyItemPricesButton);
         maintenancePanel.add(nextPageButton);
         maintenancePanel.add(cancelButton);
@@ -933,9 +863,7 @@ public class MainView {
         mainFrame.add(maintenancePanel);
         while (true) {
             Object[] options = {
-                    "Add regular items",
                     "Restock items",
-                    "Remove items",
                     "Modify item prices",
                     "Next Page",
                     "Cancel"
@@ -954,21 +882,15 @@ public class MainView {
 
             switch (choice) {
                 case 0:
-                    saddRegularItems();
-                    break;
-                case 1:
                     srestockItems();
                     break;
-                case 2:
-                    sremoveItems();
-                    break;
-                case 3:
+                case 1:
                     smodifyItemPrices();
                     break;
-                case 4:
+                case 2:
                     testSpecialVendingMachine2();
                     break;
-                case 5:
+                case 3:
                     JOptionPane.showMessageDialog(mainFrame, "Returning to the main menu.");
                     return;
                 default:
@@ -988,7 +910,6 @@ public class MainView {
         JButton modifyCaloriesButton = new JButton("Modify Calories");
         JButton collectPaymentsButton = new JButton("Collect/Replenish payments/money denominations");
         JButton displayItemsButton = new JButton("Display Items");
-        JButton printSummaryButton = new JButton("Print transaction summary");
         JButton prevPageButton = new JButton("Previous Page");
         JButton cancelButton = new JButton("Cancel");
 
@@ -997,7 +918,6 @@ public class MainView {
         maintenancePanel.add(modifyCaloriesButton);
         maintenancePanel.add(collectPaymentsButton);
         maintenancePanel.add(displayItemsButton);
-        maintenancePanel.add(printSummaryButton);
         maintenancePanel.add(prevPageButton);
         maintenancePanel.add(cancelButton);
 
@@ -1007,7 +927,6 @@ public class MainView {
                     "Modify Calories",
                     "Collect/Replenish payments/money denominations",
                     "Display Items",
-                    "Print transaction summary",
                     "Previous Page",
                     "Cancel"
             };
@@ -1034,12 +953,9 @@ public class MainView {
                     sdisplay();
                     break;
                 case 3:
-                    //     printTransactionSummary();
-                    break;
-                case 4:
                     testMaintenanceFeatures1();
                     return;
-                case 5:
+                case 4:
                     JOptionPane.showMessageDialog(mainFrame, "Returning to the main menu.");
                     return;
                 default:
@@ -1048,6 +964,55 @@ public class MainView {
             }
         }
     }
+
+
+    public void printSpecialMessage(ArrayList<Integer> selectedSlots) {
+        boolean hasChicken = false;
+        boolean hasBeef = false;
+        boolean hasRice = false;
+        boolean hasNoodle = false;
+
+        for (int slotNumber : selectedSlots) {
+            ItemSlot selectedSlot = specialvendingMachine.getSlots().get(slotNumber - 1);
+            Item item = selectedSlot.getItem();
+            if (item != null) {
+                String itemName = item.getName().toLowerCase();
+                if (itemName.equals("chicken")) {
+                    hasChicken = true;
+                } else if (itemName.equals("beef")) {
+                    hasBeef = true;
+                } else if (itemName.equals("rice")) {
+                    hasRice = true;
+                } else if (itemName.equals("noodle soup")) {
+                    hasNoodle = true;
+                }
+            }
+        }
+
+        StringBuilder messageBuilder = new StringBuilder();
+
+        if (hasChicken && hasRice) {
+            messageBuilder.append("You bought Chicken Rice!\n");
+        }
+
+        if (hasBeef && hasRice) {
+            messageBuilder.append("You bought Beef Rice!\n");
+        }
+
+        if (hasChicken && hasNoodle) {
+            messageBuilder.append("You bought Chicken Noodle Soup!\n");
+        }
+
+        if (hasBeef && hasNoodle) {
+            messageBuilder.append("You bought Beef Noodle Soup!\n");
+        }
+
+        // Display the special messages using a dialog
+        if (messageBuilder.length() > 0) {
+            showMessage(messageBuilder.toString());
+        }
+    }
+
     private void showMessage(String message) {
         JOptionPane.showMessageDialog(mainFrame, message);
     }
@@ -1058,6 +1023,13 @@ public class MainView {
     }
     public SpecialVendingMachine getSpecialVendingMachine() {
         return specialvendingMachine;
+    }
+    public ArrayList<Integer> getSelectedSlots() {
+        return selectedSlots;
+    }
+
+    public void setVendingMachine(VendingMachine vendingMachine) {
+        this.vendingMachine = vendingMachine;
     }
 
 }
